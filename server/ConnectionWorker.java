@@ -1,13 +1,15 @@
 package server;
 
-import dataBase.DataBase;
+import com.google.gson.Gson;
+import database.DataBase;
 import util.InputReader;
 import util.OutputWriter;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Objects;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * In this class we provide processing of messages received by the server
@@ -19,14 +21,14 @@ public class ConnectionWorker implements Runnable {
     private final ServerSocket serverSocket;
     private static final boolean DEBUG_MODE = false;
     private final DataBase dataBase;
-    private int index;
-    private String data;
+    Map<String, String> answer = new LinkedHashMap<>();
 
     /**
      * Constructor of the message processing object
-     * @param socket - Socket, connection with client
+     *
+     * @param socket       - Socket, connection with client
      * @param serverSocket - ServerSocket, connection or server
-     * @param dataBase - object, where data is stored
+     * @param dataBase     - object, where data is stored
      */
     public ConnectionWorker(final Socket socket, ServerSocket serverSocket, DataBase dataBase) {
         if (DEBUG_MODE) {
@@ -45,56 +47,69 @@ public class ConnectionWorker implements Runnable {
      */
     @Override
     public void run() {
-        String command;
-        do {
-            final String rawMessage = inputReader.read().trim();
+        final String rawMessage = inputReader.read().trim();
 
-            command = getCommand(rawMessage);
+        GsonFromJson gsonFromJson = new GsonFromJson(rawMessage);
+        gsonFromJson.getString();
 
-            switch (command) {
-                case "get":
-                    String result = dataBase.getData(index);
-                    outputWriter.sentMessage(Objects.requireNonNullElse(result, "ERROR"));
-                    break;
-                case "set":
-                    outputWriter.sentMessage(dataBase.setData(index, data) ? "OK" : "ERROR");
-                    break;
-                case "delete":
-                    outputWriter.sentMessage(dataBase.deleteData(index) ? "OK" : "ERROR");
-                    break;
-                case "exit":
-                    outputWriter.sentMessage("OK");
-                    closeSocket();
-                    try {
-                        serverSocket.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    break;
-            }
-        } while (!command.equals("exit"));
+        String command = gsonFromJson.getType();
+        String key = gsonFromJson.getKey();
+        String value = gsonFromJson.getValue();
+
+        switch (command) {
+            case "get":
+                String result = dataBase.getData(key);
+                if (result.equals("")) {
+                    answer.put("response", "ERROR");
+                    answer.put("reason", "No such key");
+                } else {
+                    answer.put("response", "OK");
+                    answer.put("value", result.trim());
+                }
+                sentAnswer(answer);
+                break;
+            case "set":
+                if (dataBase.setData(key, value)) {
+                    answer.put("response", "OK");
+                } else {
+                    answer.put("response", "ERROR");
+                }
+                sentAnswer(answer);
+                break;
+            case "delete":
+                if (dataBase.deleteData(key)) {
+                    answer.put("response", "OK");
+                } else {
+                    answer.put("response", "ERROR");
+                    answer.put("reason", "No such key");
+                }
+                sentAnswer(answer);
+                break;
+            case "exit":
+                answer.put("response", "OK");
+                sentAnswer(answer);
+                closeSocket();
+                try {
+                    serverSocket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
+        }
     }
 
     /**
-     * Getting the command and data from raw request received from the client
-     * @param rawMessage - String, rew request from client
-     * @return - String, main command for database
+     * Creating and sending the server response in JSON format
+     * @param answer Map<> , a set of keys and objects for generating a JSON message
      */
-    public String getCommand(String rawMessage) {
-        String[] input = rawMessage.split(" ");
-        if (input.length > 1) {
-            index = Integer.parseInt(input[1]) - 1;
-        }
-        if (input.length > 2) {
-            data = input[2];
-        }
-        if (input.length > 3) {
-            for (int i = 3; i < input.length; i++) {
-                data = data.concat(" ").concat(input[i]);
-            }
-        }
-        return input[0];
+    private void sentAnswer(Map<String, String> answer) {
+        Gson gson = new Gson();
+
+        String output = gson.toJson(answer);
+
+        outputWriter.sentMessage(output);
     }
+
 
     /**
      * Break connection

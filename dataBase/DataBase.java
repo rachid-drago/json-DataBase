@@ -1,61 +1,52 @@
-package dataBase;
+package database;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
 
 public class DataBase {
 
-    String[] array;
+    Map<String,String> storage;
 
     /**
      * Constructor of an object with the passed parameters
-     *
-     * @param size - int, size of the data base
      */
-    public DataBase(int size) {
-        this.array = new String[size];
+    public DataBase() {
+        this.storage = new LinkedHashMap<>();
     }
 
     /**
      * Set data into data base
-     *
-     * @param index - int, index of the database cell where the data should be placed
-     * @param data  - Strind, data to be placed
+     * @param key - String, key of the database cell where the data should be placed
+     * @param value - Strind, data to be placed
      * @return - boolean, result of operation
      */
-    public boolean setData(int index, String data) {
-        if (index >= this.array.length) {
-            return false;
-        } else {
-            this.array[index] = data;
-            return true;
-        }
+    public boolean setData(String key, String value) {
+        storage.put(key, value);
+        return true;
     }
 
     /**
      * Getting data from the database
-     *
-     * @param index - int, index of the database cell
+     * @param key - String, key of the database cell
      * @return - String, receiving data
      */
-    public String getData(int index) {
-        System.out.println("got index:" + index);
-        if (index < 0 || index >= this.array.length) {
-            return "";
-        } else {
-            return this.array[index];
-        }
+    public String getData(String key) {
+        String result = storage.get(key);
+        return Objects.requireNonNullElse(result, "");
     }
 
     /**
      * Delete data from database
-     *
-     * @param index - int, index of the database cell
+     * @param key - String, key of the database cell
      * @return - boolean result of operation
      */
-    public boolean deleteData(int index) {
-        if (index < 0 || index >= this.array.length) {
-            return false;
-        } else {
-            this.array[index] = null;
+    public boolean deleteData(String key) {
+        if (storage.containsKey(key)) {
+            storage.remove(key);
             return true;
+        } else {
+            return false;
         }
     }
 }

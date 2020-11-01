@@ -1,26 +1,24 @@
 package server;
 
-import dataBase.DataBase;
+import database.DataBase;
 
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-
-
-
 public class Main {
-    private static final int SIZE = 100;
+
     private static ServerSocket serverSocket;
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
 
-        DataBase dataBase = new DataBase(SIZE);
+        DataBase dataBase = new DataBase();
         greeting();
         createServerSocket();
         createClientSocket(dataBase);
         closeSocket();
     }
+
 
     /**
      * Say hello!
@@ -41,6 +39,34 @@ public class Main {
     }
 
     /**
+     * Creating clients socket
+     * and provide connectivity
+     */
+    private static void createClientSocket(DataBase dataBase) {
+
+        while (!serverSocket.isClosed()) {
+            final Socket clientSocket = getConnection();
+            if (clientSocket != null)
+                new Thread(new ConnectionWorker(clientSocket, serverSocket, dataBase)).start();
+
+        }
+    }
+
+    /**
+     * Getting the socket connection to the client
+     *
+     * @return - Socket connection
+     */
+    private static Socket getConnection() {
+        try {
+            return serverSocket.accept();
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
+
+
+    /**
      * Creating a ServerSocket object to connect clients to it
      */
     private static void createServerSocket() {
@@ -55,32 +81,4 @@ public class Main {
             }
         }
     }
-    /**
-     * Getting the socket connection to the client
-     *
-     * @return - Socket connection
-     */
-    private static Socket getConnection() {
-        try {
-            return serverSocket.accept();
-        } catch (Exception ignored) {
-        }
-        return null;
-    }
-
-    /**
-     * Creating clients socket
-     * and provide connectivity
-     */
-    private static void createClientSocket(DataBase dataBase) {
-
-        //while (!isExit) {
-        while (!serverSocket.isClosed()) {
-            final Socket clientSocket = getConnection();
-            if (clientSocket != null)
-                new Thread(new ConnectionWorker(clientSocket, serverSocket, dataBase)).start();
-
-        }
-    }
 }
-
