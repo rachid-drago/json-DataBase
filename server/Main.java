@@ -12,7 +12,7 @@ public class Main {
 
     public static void main(final String[] args) {
 
-        DataBase dataBase = new DataBase();
+        DataBase dataBase = new DataBase("C:\\Users\\Rachid-pc\\IdeaProjects\\JSON Database\\JSON Database\\task\\src\\server\\data\\db.json");
         greeting();
         createServerSocket();
         createClientSocket(dataBase);

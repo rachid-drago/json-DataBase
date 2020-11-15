@@ -7,11 +7,13 @@ public class Arguments {
     private final String type;
     private final String key;
     private final String value;
+    private final String fileName;
 
-    public Arguments(String type, String key, String value) {
+    public Arguments(String type, String key, String value, String fileName) {
         this.type = type;
         this.key = key;
         this.value = value;
+        this.fileName = fileName;
     }
 
     public String getType() {
@@ -24,5 +26,9 @@ public class Arguments {
 
     public String getValue() {
         return value;
+    }
+
+    public String getFileName() {
+        return fileName;
     }
 }

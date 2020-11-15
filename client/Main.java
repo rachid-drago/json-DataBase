@@ -7,10 +7,13 @@ import util.InputReader;
 import util.OutputWriter;
 
 
+import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Scanner;
 
 
 public class Main {
@@ -24,6 +27,8 @@ public class Main {
     String key;
     @Parameter(names = {"--value", "-v"})
     String value;
+    @Parameter(names = {"--input", "-in"}, description = "file name")
+    String fileName;
 
     Map<String, String> request = new LinkedHashMap<>();
 
@@ -45,11 +50,29 @@ public class Main {
         OutputWriter outputWriter = new OutputWriter(clientSocket);
 
         System.out.println("Client started!");
-        createRequest(type, key, value);
 
-        Gson gson = new Gson();
+        String output = "";
 
-        String output = gson.toJson(request);
+        if (fileName == null) {
+
+            createRequest(type, key, value);
+
+            Gson gson = new Gson();
+
+            output = gson.toJson(request);
+
+        } else {
+
+            try {
+
+                File file = new File("C:\\Users\\Rachid-pc\\IdeaProjects\\JSON Database\\JSON Database\\task\\src\\client\\data\\" + fileName);
+               // System.out.println("this is file name "+fileName);
+                Scanner scanner = new Scanner(file);
+                output = scanner.nextLine();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         System.out.println("Sent: " + output);
         outputWriter.sentMessage(output);

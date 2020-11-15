@@ -59,7 +59,7 @@ public class ConnectionWorker implements Runnable {
         switch (command) {
             case "get":
                 String result = dataBase.getData(key);
-                if (result.equals("")) {
+                if (result == null) {
                     answer.put("response", "ERROR");
                     answer.put("reason", "No such key");
                 } else {
